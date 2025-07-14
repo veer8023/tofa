@@ -35,25 +35,21 @@ export default function ProductsPage() {
   // Fetch products from API
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoading(true)
       try {
         const response = await fetch("/api/products")
         const data = await response.json()
-
-        // Transform API data to match component interface
         const transformedProducts = data.map((product: any) => ({
           id: product.id,
           name: product.name,
           price: product.price,
-          wholesalePrice: product.wholesalePrice,
           image: product.image || "/placeholder.svg?height=300&width=300",
-          category: product.category.toLowerCase() as "fruits" | "aromatics" | "other",
+          category: product.category.toLowerCase(),
           description: product.description,
-          availability: product.stock > 0 ? "in-stock" : ("out-of-stock" as "in-stock" | "out-of-stock" | "limited"),
+          availability: product.stock > 0 ? "in-stock" : "out-of-stock",
           unit: product.unit,
         }))
-
         setProducts(transformedProducts)
-        setLoading(false)
       } catch (error) {
         console.error("Failed to fetch products:", error)
         // Fallback to static products
@@ -82,8 +78,8 @@ export default function ProductsPage() {
           },
         ]
         setProducts(fallbackProducts)
-        setLoading(false)
       }
+      setLoading(false) // <-- Always reset loading state
     }
 
     fetchProducts()
