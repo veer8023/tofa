@@ -38,18 +38,30 @@ export default function ProductsPage() {
       setLoading(true)
       try {
         const response = await fetch("/api/products")
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        
         const data = await response.json()
-        const transformedProducts = data.map((product: any) => ({
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          image: product.image || "/placeholder.svg?height=300&width=300",
-          category: product.category.toLowerCase(),
-          description: product.description,
-          availability: product.stock > 0 ? "in-stock" : "out-of-stock",
-          unit: product.unit,
-        }))
-        setProducts(transformedProducts)
+        
+        // Ensure data is an array before mapping
+        if (Array.isArray(data)) {
+          const transformedProducts = data.map((product: any) => ({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            wholesalePrice: product.wholesalePrice || product.price * 0.85,
+            image: product.image || "/placeholder.svg?height=300&width=300",
+            category: product.category.toLowerCase(),
+            description: product.description,
+            availability: product.stock > 0 ? "in-stock" : "out-of-stock",
+            unit: product.unit,
+          }))
+          setProducts(transformedProducts)
+        } else {
+          throw new Error("Invalid data format received from API")
+        }
       } catch (error) {
         console.error("Failed to fetch products:", error)
         // Fallback to static products
