@@ -11,6 +11,9 @@ import { useCart } from "@/contexts/cart-context"
 export default function CartPage() {
   const { items, total, updateQuantity, removeItem } = useCart()
 
+  // Debug: Check cart items structure
+  // Cart items loaded
+
   if (items.length === 0) {
     return (
       <div className="container py-12">
@@ -40,18 +43,18 @@ export default function CartPage() {
                 <div className="flex items-center space-x-4">
                   <Image
                     src={item.image || "/placeholder.svg"}
-                    alt={item.name}
+                    alt={item.name ?? "Unknown Product"}
                     width={80}
                     height={80}
                     className="rounded-lg object-cover"
                   />
 
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg">{item.name}</h3>
+                    <h3 className="font-semibold text-lg">{item.name ?? "Unknown Product"}</h3>
                     <p className="text-sm text-gray-600 capitalize">
-                      {item.orderType} • {item.category}
+                      {item.orderType ?? "retail"} • {item.category ?? "other"}
                     </p>
-                    <p className="text-lg font-bold text-green-600">₹{item.price}</p>
+                    <p className="text-lg font-bold text-green-600">₹{item.price ?? 0}</p>
                   </div>
 
                   <div className="flex items-center space-x-2">
@@ -71,7 +74,7 @@ export default function CartPage() {
                   </div>
 
                   <div className="text-right">
-                    <p className="font-semibold">₹{item.price * item.quantity}</p>
+                    <p className="font-semibold">₹{(item.price ?? 0) * item.quantity}</p>
                     <Button
                       variant="ghost"
                       size="sm"

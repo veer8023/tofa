@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from "react"
+import { useAuth } from "@/contexts/auth-context"
 
 export interface CartItem {
   id: string
@@ -8,8 +9,8 @@ export interface CartItem {
   price: number
   image: string
   quantity: number
-  category: "fruits" | "aromatics"
-  orderType: "retail" | "wholesale"
+  category: "FRUITS" | "AROMATICS"
+  orderType: "RETAIL" | "WHOLESALE"
   productId: string
 }
 
@@ -31,7 +32,7 @@ const CartContext = createContext<{
   items: CartItem[]
   total: number
   loading: boolean
-  addItem: (item: Omit<CartItem, "quantity" | "id">) => Promise<void>
+  addItem: (productId: string, quantity?: number) => Promise<void>
   removeItem: (id: string) => Promise<void>
   updateQuantity: (id: string, quantity: number) => Promise<void>
   clearCart: () => Promise<void>
@@ -81,25 +82,20 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
   const [state, dispatch] = useReducer(cartReducer, { items: [], total: 0, loading: false })
 
   const fetchCart = async () => {
+    if (!user?.id) return
+    
+    dispatch({ type: "SET_LOADING", payload: true })
     try {
-      dispatch({ type: "SET_LOADING", payload: true })
-      const response = await fetch("/api/cart")
+      const response = await fetch(`/api/cart?userId=${user.id}`)
       if (response.ok) {
-        const cartItems = await response.json()
-        const formattedItems = cartItems.map((item: any) => ({
-          id: item.id,
-          productId: item.productId,
-          name: item.product.name,
-          price: item.orderType === "WHOLESALE" ? item.product.wholesalePrice : item.product.price,
-          image: item.product.image,
-          quantity: item.quantity,
-          category: item.product.category.toLowerCase(),
-          orderType: item.orderType.toLowerCase(),
-        }))
-        dispatch({ type: "SET_ITEMS", payload: formattedItems })
+        const data = await response.json()
+        dispatch({ type: "SET_ITEMS", payload: data.items })
+      } else {
+        console.error("Failed to fetch cart:", response.statusText)
       }
     } catch (error) {
       console.error("Failed to fetch cart:", error)
@@ -108,22 +104,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const addItem = async (item: Omit<CartItem, "quantity" | "id">) => {
+  const addItem = async (productId: string, quantity: number = 1) => {
     try {
+      if (!user?.id) throw new Error("No user ID found")
+      
       const response = await fetch("/api/cart", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          productId: item.productId,
-          quantity: 1,
-          orderType: item.orderType,
+          userId: user.id,
+          productId,
+          quantity,
+          orderType: "RETAIL"
         }),
       })
 
       if (response.ok) {
-        await fetchCart()
+        await fetchCart() // Refresh cart after adding item
+      } else {
+        const errorData = await response.json()
+        console.error("Failed to add item to cart:", errorData)
       }
     } catch (error) {
       console.error("Failed to add item to cart:", error)
@@ -132,12 +132,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const removeItem = async (id: string) => {
     try {
-      const response = await fetch(`/api/cart/${id}`, {
+      if (!user?.id) throw new Error("No user ID found")
+      
+      const response = await fetch(`/api/cart?userId=${user.id}&itemId=${id}`, {
         method: "DELETE",
       })
 
       if (response.ok) {
         dispatch({ type: "REMOVE_ITEM", payload: id })
+      } else {
+        console.error("Failed to remove item from cart:", response.statusText)
       }
     } catch (error) {
       console.error("Failed to remove item from cart:", error)
@@ -146,21 +150,36 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const updateQuantity = async (id: string, quantity: number) => {
     try {
+      if (!user?.id) throw new Error("No user ID found")
+      
+      // Find the item to get productId
+      const item = state.items.find(item => item.id === id)
+      if (!item) {
+        console.error("Item not found in cart")
+        return
+      }
+
       if (quantity <= 0) {
         await removeItem(id)
         return
       }
 
-      const response = await fetch(`/api/cart/${id}`, {
+      const response = await fetch("/api/cart", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ quantity }),
+        body: JSON.stringify({ 
+          userId: user.id,
+          productId: item.productId,
+          quantity 
+        }),
       })
 
       if (response.ok) {
         dispatch({ type: "UPDATE_ITEM", payload: { id, quantity } })
+      } else {
+        console.error("Failed to update cart item:", response.statusText)
       }
     } catch (error) {
       console.error("Failed to update cart item:", error)
@@ -169,12 +188,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = async () => {
     try {
-      const response = await fetch("/api/cart", {
+      if (!user?.id) throw new Error("No user ID found")
+      
+      const response = await fetch(`/api/cart?userId=${user.id}`, {
         method: "DELETE",
       })
 
       if (response.ok) {
         dispatch({ type: "CLEAR_CART" })
+      } else {
+        console.error("Failed to clear cart:", response.statusText)
       }
     } catch (error) {
       console.error("Failed to clear cart:", error)
@@ -182,8 +205,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    fetchCart()
-  }, [])
+    if (user?.id) {
+      fetchCart()
+    }
+  }, [user?.id])
 
   return (
     <CartContext.Provider

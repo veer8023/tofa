@@ -1,230 +1,153 @@
-import { PrismaClient } from "@prisma/client"
-import bcrypt from "bcryptjs"
+import { PrismaClient } from '@prisma/client'
+import { hashPassword } from '../lib/auth'
 
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log("🌱 Starting database seed...")
+  console.log('🌱 Starting database seed...')
 
-  try {
-    // Create admin user
-    const adminPassword = await bcrypt.hash("admin123", 10)
-    const admin = await prisma.user.upsert({
-      where: { email: "admin@tofa.com" },
-      update: {},
-      create: {
-        email: "admin@tofa.com",
-        password: adminPassword,
-        name: "Admin User",
-        role: "ADMIN",
-        phone: "+91-9876543210",
-        address: "TOFA Organic Farm, Kerala, India",
-      },
-    })
-    console.log("✅ Created admin user")
+  // Clear existing data
+  await prisma.orderItem.deleteMany()
+  await prisma.order.deleteMany()
+  await prisma.cartItem.deleteMany()
+  await prisma.product.deleteMany()
+  await prisma.user.deleteMany()
+  await prisma.settings.deleteMany()
 
-    // Create customer user
-    const customerPassword = await bcrypt.hash("password123", 10)
-    const customer = await prisma.user.upsert({
-      where: { email: "customer@example.com" },
-      update: {},
-      create: {
-        email: "customer@example.com",
-        password: customerPassword,
-        name: "John Customer",
-        role: "CUSTOMER",
-        phone: "+91-9876543211",
-        address: "Mumbai, Maharashtra, India",
-      },
-    })
-    console.log("✅ Created customer user")
+  // Create admin user with hashed password
+  const adminPassword = await hashPassword('admin123')
+  const adminUser = await prisma.user.create({
+    data: {
+      name: 'Admin User',
+      email: 'admin@tofa.com',
+      password: adminPassword,
+      role: 'ADMIN',
+      status: 'ACTIVE',
+    },
+  })
+  console.log('✅ Created admin user')
 
-    // Create sample products
-    const products = [
-      {
-        name: "Organic Mangoes",
-        description: "Sweet and juicy organic mangoes from Kerala",
-        price: 150.0,
-        category: "FRUITS" as const,
-        image: "/placeholder.svg?height=300&width=300",
-        stock: 50,
-        unit: "kg",
-        featured: true,
-        organic: true,
-      },
-      {
-        name: "Fresh Coconuts",
-        description: "Fresh coconuts directly from our farm",
-        price: 45.0,
-        category: "FRUITS" as const,
-        image: "/placeholder.svg?height=300&width=300",
-        stock: 100,
-        unit: "piece",
-        featured: true,
-        organic: true,
-      },
-      {
-        name: "Organic Cardamom",
-        description: "Premium quality organic cardamom",
-        price: 800.0,
-        category: "AROMATICS" as const,
-        image: "/placeholder.svg?height=300&width=300",
-        stock: 25,
-        unit: "kg",
-        featured: false,
-        organic: true,
-      },
-      {
-        name: "Black Pepper",
-        description: "Freshly ground black pepper from Western Ghats",
-        price: 600.0,
-        category: "AROMATICS" as const,
-        image: "/placeholder.svg?height=300&width=300",
-        stock: 30,
-        unit: "kg",
-        featured: false,
-        organic: true,
-      },
-      {
-        name: "Coconut Oil",
-        description: "Pure cold-pressed coconut oil",
-        price: 250.0,
-        category: "OILS" as const,
-        image: "/placeholder.svg?height=300&width=300",
-        stock: 40,
-        unit: "liter",
-        featured: true,
-        organic: true,
-      },
-      {
-        name: "Fresh Basil",
-        description: "Aromatic fresh basil leaves",
-        price: 80.0,
-        category: "HERBS" as const,
-        image: "/placeholder.svg?height=300&width=300",
-        stock: 20,
-        unit: "bunch",
-        featured: false,
-        organic: true,
-      },
-      {
-        name: "Organic Turmeric",
-        description: "High-quality organic turmeric powder",
-        price: 120.0,
-        category: "OTHER" as const,
-        image: "/placeholder.svg?height=300&width=300",
-        stock: 35,
-        unit: "kg",
-        featured: false,
-        organic: true,
-      },
-      {
-        name: "Jackfruit",
-        description: "Fresh organic jackfruit",
-        price: 80.0,
-        category: "FRUITS" as const,
-        image: "/placeholder.svg?height=300&width=300",
-        stock: 15,
-        unit: "kg",
-        featured: true,
-        organic: true,
-      },
-    ]
+  // Create customer user with hashed password
+  const customerPassword = await hashPassword('password123')
+  const customerUser = await prisma.user.create({
+    data: {
+      name: 'Test Customer',
+      email: 'customer@example.com',
+      password: customerPassword,
+      role: 'CUSTOMER',
+      status: 'ACTIVE',
+    },
+  })
+  console.log('✅ Created customer user')
 
-    // Create products one by one
-    for (const productData of products) {
-      await prisma.product.upsert({
-        where: { name: productData.name },
-        update: {
-          description: productData.description,
-          price: productData.price,
-          category: productData.category,
-          image: productData.image,
-          stock: productData.stock,
-          unit: productData.unit,
-          featured: productData.featured,
-          organic: productData.organic,
-        },
-        create: productData,
-      })
-    }
-    console.log(`✅ Created ${products.length} products`)
+  // Create products
+  const products = [
+    {
+      name: 'Organic Apples',
+      description: 'Fresh organic apples from our orchards',
+      price: 2.99,
+      wholesalePrice: 2.49,
+      category: 'FRUITS',
+      stock: 100,
+      minStock: 10,
+      unit: 'kg',
+      status: 'ACTIVE',
+      image: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400',
+    },
+    {
+      name: 'Lavender Essential Oil',
+      description: 'Pure lavender essential oil for aromatherapy',
+      price: 15.99,
+      wholesalePrice: 12.99,
+      category: 'AROMATICS',
+      stock: 50,
+      minStock: 5,
+      unit: 'ml',
+      status: 'ACTIVE',
+      image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400',
+    },
+  ]
 
-    // Get created products for order creation
-    const mango = await prisma.product.findUnique({ where: { name: "Organic Mangoes" } })
-    const coconutOil = await prisma.product.findUnique({ where: { name: "Coconut Oil" } })
-
-    if (mango && coconutOil) {
-      // Create sample order
-      const existingOrder = await prisma.order.findFirst({
-        where: { userId: customer.id },
-      })
-
-      if (!existingOrder) {
-        const sampleOrder = await prisma.order.create({
-          data: {
-            userId: customer.id,
-            status: "DELIVERED",
-            total: 550.0,
-            paymentMethod: "COD",
-            paymentStatus: "PAID",
-            shippingAddress: "Mumbai, Maharashtra, India",
-            phone: "+91-9876543211",
-            notes: "Please deliver in the morning",
-            orderItems: {
-              create: [
-                {
-                  productId: mango.id,
-                  quantity: 2,
-                  price: 150.0,
-                },
-                {
-                  productId: coconutOil.id,
-                  quantity: 1,
-                  price: 250.0,
-                },
-              ],
-            },
-          },
-        })
-        console.log("✅ Created sample order")
-      }
-    }
-
-    // Create app settings
-    const settings = [
-      { key: "app_name", value: "TOFA Organic Farm" },
-      { key: "delivery_fee", value: "50" },
-      { key: "free_delivery_threshold", value: "500" },
-      { key: "contact_email", value: "info@tofa.com" },
-      { key: "contact_phone", value: "+91-9876543210" },
-    ]
-
-    for (const setting of settings) {
-      await prisma.settings.upsert({
-        where: { key: setting.key },
-        update: { value: setting.value },
-        create: setting,
-      })
-    }
-    console.log(`✅ Created ${settings.length} settings`)
-
-    console.log("\n🎉 Database seeded successfully!")
-    console.log("👤 Login credentials:")
-    console.log("   Admin: admin@tofa.com / admin123")
-    console.log("   Customer: customer@example.com / password123")
-    console.log(`📦 Products: ${products.length} items created`)
-    console.log("🛒 Sample order: 1 order created")
-    console.log(`⚙️ Settings: ${settings.length} configurations`)
-  } catch (error) {
-    console.error("❌ Error during seeding:", error)
-    throw error
+  for (const product of products) {
+    await prisma.product.create({ data: product })
   }
+  console.log(`✅ Created ${products.length} products`)
+
+  // Create sample order
+  const order = await prisma.order.create({
+    data: {
+      orderNumber: `TOFA${Date.now()}`,
+      userId: customerUser.id,
+      status: 'PENDING',
+      paymentMethod: 'COD',
+      paymentStatus: 'PENDING',
+      subtotal: 18.98,
+      shippingCost: 5.99,
+      tax: 1.90,
+      total: 26.87,
+      shippingName: 'Test Customer',
+      shippingPhone: '+0987654321',
+      shippingAddress: '456 Customer Ave',
+      shippingCity: 'Customer Town',
+      shippingState: 'CT',
+      shippingPincode: '12345',
+    },
+  })
+
+  // Add order items
+  const appleProduct = await prisma.product.findFirst({ where: { name: 'Organic Apples' } })
+  const lavenderProduct = await prisma.product.findFirst({ where: { name: 'Lavender Essential Oil' } })
+
+  if (appleProduct && lavenderProduct) {
+    await prisma.orderItem.create({
+      data: {
+        orderId: order.id,
+        productId: appleProduct.id,
+        quantity: 2,
+        price: appleProduct.price,
+        orderType: 'RETAIL',
+      },
+    })
+
+    await prisma.orderItem.create({
+      data: {
+        orderId: order.id,
+        productId: lavenderProduct.id,
+        quantity: 1,
+        price: lavenderProduct.price,
+        orderType: 'RETAIL',
+      },
+    })
+  }
+
+  console.log('✅ Created sample order')
+
+  // Create settings
+  const settings = [
+    { key: 'site_name', value: 'TOFA - Tarasvie Organic Farms & Aromatics', type: 'STRING' },
+    { key: 'contact_email', value: 'contact@tofa.com', type: 'STRING' },
+    { key: 'contact_phone', value: '+1-234-567-8900', type: 'STRING' },
+    { key: 'shipping_fee', value: '5.99', type: 'NUMBER' },
+    { key: 'free_shipping_threshold', value: '50.00', type: 'NUMBER' },
+  ]
+
+  for (const setting of settings) {
+    await prisma.settings.create({ data: setting })
+  }
+  console.log(`✅ Created ${settings.length} settings`)
+
+  console.log('\n🎉 Database seeded successfully!')
+  console.log('👤 Login credentials:')
+  console.log('   Admin: admin@tofa.com / admin123')
+  console.log('   Customer: customer@example.com / password123')
+  console.log(`📦 Products: ${products.length} items created`)
+  console.log('🛒 Sample order: 1 order created')
+  console.log(`⚙️ Settings: ${settings.length} configurations`)
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Seed failed:", e)
+    console.error('❌ Error during seeding:', e)
     process.exit(1)
   })
   .finally(async () => {

@@ -77,29 +77,50 @@ export default function CheckoutPage() {
 
     setLoading(true)
     try {
-      // Simulate order creation
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      // Create order via API
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          items: items.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity
+          })),
+          shippingAddress,
+          paymentMethod,
+          orderType: "RETAIL", // Default to retail, can be modified based on user type
+          notes: ""
+        }),
+      })
 
-      const orderId = `TOFA${Date.now()}`
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || "Failed to create order")
+      }
+
+      const { order } = await response.json()
 
       if (paymentMethod === "cod") {
         toast({
           title: "Order Placed Successfully!",
-          description: `Your order ${orderId} has been placed. You'll pay ₹${finalTotal} on delivery.`,
+          description: `Your order ${order.orderNumber} has been placed. You'll pay ₹${finalTotal} on delivery.`,
         })
       } else {
         toast({
           title: "Order Placed Successfully!",
-          description: `Your order ${orderId} has been placed. Payment processing will be available soon.`,
+          description: `Your order ${order.orderNumber} has been placed. Payment processing will be available soon.`,
         })
       }
 
       clearCart()
-      router.push(`/order-confirmation?orderId=${orderId}`)
-    } catch (error) {
+      router.push(`/order-confirmation?orderId=${order.orderNumber}`)
+    } catch (error: any) {
+      console.error("Order creation error:", error)
       toast({
         title: "Order Failed",
-        description: "Something went wrong. Please try again.",
+        description: error.message || "Something went wrong. Please try again.",
         variant: "destructive",
       })
     } finally {

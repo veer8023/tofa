@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 60" width="240" height="60">
+  <!-- Background circle with leaf design -->
+  <circle cx="30" cy="30" r="25" fill="none" stroke="#4a5568" stroke-width="1.5"/>
+  
+  <!-- Water drop -->
+  <path d="M25 20 Q30 15 35 20 Q30 25 25 20 Z" fill="#4a5568"/>
+  
+  <!-- Leaf design -->
+  <path d="M20 25 Q30 20 40 25 Q35 35 30 30 Q25 35 20 25 Z" fill="none" stroke="#4a5568" stroke-width="1.5"/>
+  <path d="M25 30 Q30 25 35 30" stroke="#4a5568" stroke-width="1" fill="none"/>
+  <path d="M22 32 Q30 27 38 32" stroke="#4a5568" stroke-width="1" fill="none"/>
+  
+  <!-- TARASVIE text -->
+  <text x="70" y="25" font-family="Georgia, serif" font-size="18" font-weight="bold" fill="#4a5568" letter-spacing="2px">
+    TARASVIE
+  </text>
+  
+  <!-- Tagline -->
+  <text x="70" y="40" font-family="Arial, sans-serif" font-size="8" fill="#718096" letter-spacing="1px">
+    ORGANIC FARMS & AROMATICS
+  </text>
+</svg>

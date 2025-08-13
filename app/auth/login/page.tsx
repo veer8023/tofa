@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -12,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Leaf, Eye, EyeOff } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
+import { signIn } from "next-auth/react"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -37,6 +37,18 @@ export default function LoginPage() {
     } catch (error) {
       setError("An error occurred. Please try again.")
     } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true)
+    setError("")
+    try {
+      // Allow NextAuth to handle the redirect automatically
+      await signIn("google", { callbackUrl: "/" })
+    } catch (error) {
+      setError("Google sign-in failed.")
       setLoading(false)
     }
   }
@@ -85,6 +97,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="mt-1"
                   placeholder="Enter your email"
+                  disabled={loading}
                 />
               </div>
 
@@ -100,11 +113,14 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
+                    disabled={loading}
                   />
                   <button
                     type="button"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
                     onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4 text-gray-400" />
@@ -115,7 +131,11 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
+              <Button
+                type="submit"
+                className="w-full bg-green-600 hover:bg-green-700"
+                disabled={loading}
+              >
                 {loading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
@@ -141,6 +161,16 @@ export default function LoginPage() {
                   <p>Password: password123</p>
                 </div>
               </div>
+            </div>
+
+            <div className="mt-6">
+              <Button
+                onClick={handleGoogleSignIn}
+                className="w-full bg-red-600 hover:bg-red-700"
+                disabled={loading}
+              >
+                {loading ? "Signing in..." : "Sign in with Google"}
+              </Button>
             </div>
           </CardContent>
         </Card>

@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
 // Mock users data
 const MOCK_USERS = [
@@ -31,25 +32,29 @@ const MOCK_USERS = [
   },
 ]
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const role = searchParams.get("role")
-    const status = searchParams.get("status")
+    // Use searchParams from the request object directly
+    const searchParams = request.nextUrl.searchParams
+    const userId = searchParams.get("userId")
 
-    let users = [...MOCK_USERS]
-
-    if (role) {
-      users = users.filter((user) => user.role.toLowerCase() === role.toLowerCase())
+    if (userId) {
+      // Fetch a single user by ID
+      const user = await prisma.user.findUnique({ where: { id: userId } })
+      if (!user) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 })
+      }
+      return NextResponse.json(user)
     }
 
-    if (status) {
-      users = users.filter((user) => user.status.toLowerCase() === status.toLowerCase())
-    }
-
+    // Fetch all users
+    const users = await prisma.user.findMany()
     return NextResponse.json(users)
   } catch (error) {
-    console.error("Users fetch error:", error)
+    console.error("User fetch error:", error)
     return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 })
   }
 }

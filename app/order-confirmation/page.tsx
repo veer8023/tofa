@@ -12,34 +12,102 @@ export default function OrderConfirmationPage() {
   const searchParams = useSearchParams()
   const orderId = searchParams.get("orderId")
   const [orderDetails, setOrderDetails] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Simulate order details
-    const mockOrderDetails = {
-      orderId,
-      status: "confirmed",
-      paymentMethod: "cod",
-      total: 1250,
-      items: [
-        { name: "Organic Apple", quantity: 2, price: 180 },
-        { name: "Lemongrass Essential Oil", quantity: 1, price: 350 },
-      ],
-      shippingAddress: {
-        fullName: "John Doe",
-        addressLine1: "123 Main Street",
-        city: "Delhi",
-        state: "Delhi",
-        pincode: "110001",
-      },
-      estimatedDelivery: "2-3 business days",
-      trackingNumber: `TRK${Date.now()}`,
+    if (!orderId) {
+      setError("Order ID not found")
+      setLoading(false)
+      return
     }
 
-    setOrderDetails(mockOrderDetails)
+    const fetchOrderDetails = async () => {
+      try {
+        // First, try to find order by order number
+        const response = await fetch(`/api/orders?orderNumber=${orderId}`)
+        
+        if (!response.ok) {
+          throw new Error("Failed to fetch order details")
+        }
+
+        const data = await response.json()
+        
+        if (!data.orders || data.orders.length === 0) {
+          throw new Error("Order not found")
+        }
+
+        const order = data.orders[0]
+        
+        // Transform the order data to match the component's expected format
+        const transformedOrder = {
+          orderId: order.orderNumber,
+          status: order.status.toLowerCase(),
+          paymentMethod: order.paymentMethod.toLowerCase(),
+          total: order.total,
+          subtotal: order.subtotal,
+          shippingCost: order.shippingCost,
+          tax: order.tax,
+          items: order.orderItems.map((item: any) => ({
+            name: item.product.name,
+            quantity: item.quantity,
+            price: item.price,
+            image: item.product.image,
+            unit: item.product.unit
+          })),
+          shippingAddress: {
+            fullName: order.shippingName,
+            phone: order.shippingPhone,
+            addressLine1: order.shippingAddress,
+            city: order.shippingCity,
+            state: order.shippingState,
+            pincode: order.shippingPincode,
+          },
+          estimatedDelivery: "2-3 business days",
+          trackingNumber: `TRK${order.orderNumber.slice(-8)}`,
+          createdAt: order.createdAt
+        }
+
+        setOrderDetails(transformedOrder)
+      } catch (err: any) {
+        console.error("Error fetching order:", err)
+        setError(err.message || "Failed to load order details")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchOrderDetails()
   }, [orderId])
 
+  if (loading) {
+    return (
+      <div className="container py-12 text-center">
+        <div className="w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading order details...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container py-12 text-center">
+        <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Package className="h-12 w-12 text-red-600" />
+        </div>
+        <h1 className="text-2xl font-bold text-red-900 mb-2">Order Not Found</h1>
+        <p className="text-gray-600 mb-6">{error}</p>
+        <Link href="/products">
+          <Button className="bg-green-600 hover:bg-green-700">
+            Continue Shopping
+          </Button>
+        </Link>
+      </div>
+    )
+  }
+
   if (!orderDetails) {
-    return <div className="container py-12 text-center">Loading...</div>
+    return <div className="container py-12 text-center">No order details available.</div>
   }
 
   return (
@@ -94,15 +162,40 @@ export default function OrderConfirmationPage() {
 
                 <div className="border-t pt-4">
                   <h4 className="font-medium mb-3">Items Ordered:</h4>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {orderDetails.items.map((item: any, index: number) => (
-                      <div key={index} className="flex justify-between text-sm">
-                        <span>
-                          {item.name} × {item.quantity}
-                        </span>
-                        <span>₹{item.price * item.quantity}</span>
+                      <div key={index} className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded">
+                        <div className="flex-1">
+                          <div className="font-medium">{item.name}</div>
+                          <div className="text-gray-500">
+                            {item.quantity} {item.unit || 'unit'}{item.quantity > 1 ? 's' : ''} × ₹{item.price}
+                          </div>
+                        </div>
+                        <div className="font-medium">₹{item.price * item.quantity}</div>
                       </div>
                     ))}
+                  </div>
+                  
+                  {/* Price Breakdown */}
+                  <div className="mt-4 pt-3 border-t space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Subtotal:</span>
+                      <span>₹{orderDetails.subtotal}</span>
+                    </div>
+                    {orderDetails.shippingCost > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span>Shipping:</span>
+                        <span>₹{orderDetails.shippingCost}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm">
+                      <span>Tax (GST 18%):</span>
+                      <span>₹{orderDetails.tax}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold border-t pt-2">
+                      <span>Total:</span>
+                      <span>₹{orderDetails.total}</span>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -123,12 +216,14 @@ export default function OrderConfirmationPage() {
                     <span className="font-medium">Shipping Address:</span>
                   </div>
                   <div className="ml-6 text-sm text-gray-600">
-                    {orderDetails.shippingAddress.fullName}
-                    <br />
-                    {orderDetails.shippingAddress.addressLine1}
-                    <br />
-                    {orderDetails.shippingAddress.city}, {orderDetails.shippingAddress.state} -{" "}
-                    {orderDetails.shippingAddress.pincode}
+                    <div className="font-medium">{orderDetails.shippingAddress.fullName}</div>
+                    <div className="text-gray-500">Phone: {orderDetails.shippingAddress.phone}</div>
+                    <div className="mt-1">
+                      {orderDetails.shippingAddress.addressLine1}
+                      <br />
+                      {orderDetails.shippingAddress.city}, {orderDetails.shippingAddress.state} -{" "}
+                      {orderDetails.shippingAddress.pincode}
+                    </div>
                   </div>
                 </div>
 

@@ -1,14 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, Search, Edit, Trash2, Package, AlertCircle, CheckCircle, Save, X } from "lucide-react"
+import { Plus, Search, Edit, Trash2, Package, AlertCircle, CheckCircle, Save, X, Loader2 } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface Product {
   id: string
@@ -19,60 +21,22 @@ interface Product {
   stock: number
   minStock: number
   status: string
-  image: string
+  image?: string
   description: string
   unit: string
+  createdAt?: string
+  updatedAt?: string
 }
 
-// Initial mock products
-const initialProducts: Product[] = [
-  {
-    id: "1",
-    name: "Organic Apple",
-    category: "FRUITS",
-    price: 180,
-    wholesalePrice: 150,
-    stock: 50,
-    minStock: 10,
-    status: "active",
-    image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400&h=400&fit=crop",
-    description: "Fresh, crisp organic apples from our Himachal orchards",
-    unit: "per kg",
-  },
-  {
-    id: "2",
-    name: "Organic Pear",
-    category: "FRUITS",
-    price: 220,
-    wholesalePrice: 180,
-    stock: 8,
-    minStock: 10,
-    status: "active",
-    image: "https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=400&h=400&fit=crop",
-    description: "Sweet and juicy organic pears",
-    unit: "per kg",
-  },
-  {
-    id: "3",
-    name: "Lemongrass Essential Oil",
-    category: "AROMATICS",
-    price: 450,
-    wholesalePrice: 380,
-    stock: 15,
-    minStock: 5,
-    status: "active",
-    image: "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=400&h=400&fit=crop",
-    description: "Pure lemongrass essential oil",
-    unit: "per 50ml",
-  },
-]
-
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>(initialProducts)
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const { toast } = useToast()
 
   // Form state
   const [formData, setFormData] = useState({
@@ -82,7 +46,7 @@ export default function ProductsPage() {
     wholesalePrice: 0,
     stock: 0,
     minStock: 5,
-    status: "active",
+    status: "ACTIVE",
     image: "",
     description: "",
     unit: "per kg",
@@ -96,66 +60,186 @@ export default function ProductsPage() {
       wholesalePrice: 0,
       stock: 0,
       minStock: 5,
-      status: "active",
+      status: "ACTIVE",
       image: "",
       description: "",
       unit: "per kg",
     })
   }
 
+  // Fetch products from API
+  const fetchProducts = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/products?limit=50')
+      const data = await response.json()
+      
+      if (response.ok) {
+        setProducts(data.products || [])
+      } else {
+        throw new Error(data.error || 'Failed to fetch products')
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch products. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Load products on component mount
+  useEffect(() => {
+    fetchProducts()
+  }, [])
+
   const handleAddProduct = () => {
-    console.log("Add Product button clicked!")
     setShowAddForm(true)
     setEditingProduct(null)
     resetForm()
   }
 
-  const handleSaveProduct = () => {
+  const handleSaveProduct = async () => {
     if (!formData.name.trim()) {
-      alert("Please enter a product name")
+      toast({
+        title: "Validation Error",
+        description: "Please enter a product name",
+        variant: "destructive",
+      })
       return
     }
 
     if (formData.price <= 0) {
-      alert("Please enter a valid price")
+      toast({
+        title: "Validation Error", 
+        description: "Please enter a valid price",
+        variant: "destructive",
+      })
       return
     }
 
-    const newProduct: Product = {
-      ...formData,
-      id: Date.now().toString(),
-    }
+    try {
+      setSubmitting(true)
+      const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
 
-    setProducts([...products, newProduct])
-    setShowAddForm(false)
-    resetForm()
-    alert("Product added successfully!")
-    console.log("Product added:", newProduct)
+      const result = await response.json()
+
+      if (response.ok) {
+        await fetchProducts()
+        setShowAddForm(false)
+        resetForm()
+        toast({
+          title: "Success",
+          description: "Product added successfully!",
+        })
+      } else {
+        throw new Error(result.error || 'Failed to add product')
+      }
+    } catch (error) {
+      console.error('Error adding product:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to add product",
+        variant: "destructive",
+      })
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product)
-    setFormData({ ...product })
+    setFormData({
+      name: product.name,
+      category: product.category,
+      price: product.price,
+      wholesalePrice: product.wholesalePrice,
+      stock: product.stock,
+      minStock: product.minStock,
+      status: product.status,
+      image: product.image || "",
+      description: product.description,
+      unit: product.unit,
+    })
     setShowAddForm(true)
   }
 
-  const handleUpdateProduct = () => {
+  const handleUpdateProduct = async () => {
     if (!editingProduct) return
 
-    const updatedProducts = products.map((p) =>
-      p.id === editingProduct.id ? { ...formData, id: editingProduct.id } : p,
-    )
-    setProducts(updatedProducts)
-    setShowAddForm(false)
-    setEditingProduct(null)
-    resetForm()
-    alert("Product updated successfully!")
+    try {
+      setSubmitting(true)
+      const response = await fetch(`/api/products/${editingProduct.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        await fetchProducts()
+        setShowAddForm(false)
+        setEditingProduct(null)
+        resetForm()
+        toast({
+          title: "Success",
+          description: "Product updated successfully!",
+        })
+      } else {
+        throw new Error(result.error || 'Failed to update product')
+      }
+    } catch (error) {
+      console.error('Error updating product:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update product",
+        variant: "destructive",
+      })
+    } finally {
+      setSubmitting(false)
+    }
   }
 
-  const handleDeleteProduct = (productId: string) => {
-    if (confirm("Are you sure you want to delete this product?")) {
-      setProducts(products.filter((p) => p.id !== productId))
-      alert("Product deleted successfully!")
+  const handleDeleteProduct = async (productId: string, productName: string) => {
+    if (!confirm(`Are you sure you want to delete "${productName}"?`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/products/${productId}`, {
+        method: 'DELETE',
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        await fetchProducts()
+        toast({
+          title: "Success",
+          description: "Product deleted successfully!",
+        })
+      } else {
+        throw new Error(result.error || 'Failed to delete product')
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete product",
+        variant: "destructive",
+      })
     }
   }
 
@@ -163,6 +247,10 @@ export default function ProductsPage() {
     setShowAddForm(false)
     setEditingProduct(null)
     resetForm()
+  }
+
+  const handleFormChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
   }
 
   const filteredProducts = products.filter((product) => {
@@ -179,6 +267,17 @@ export default function ProductsPage() {
     } else {
       return { status: "In Stock", color: "bg-green-100 text-green-800", icon: CheckCircle }
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading products...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -331,9 +430,19 @@ export default function ProductsPage() {
               <Button
                 onClick={editingProduct ? handleUpdateProduct : handleSaveProduct}
                 className="bg-green-600 hover:bg-green-700"
+                disabled={submitting}
               >
-                <Save className="h-4 w-4 mr-2" />
-                {editingProduct ? "Update Product" : "Save Product"}
+                {submitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    {editingProduct ? "Updating..." : "Saving..."}
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    {editingProduct ? "Update Product" : "Save Product"}
+                  </>
+                )}
               </Button>
             </div>
           </CardContent>
@@ -492,7 +601,7 @@ export default function ProductsPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDeleteProduct(product.id)}
+                          onClick={() => handleDeleteProduct(product.id, product.name)}
                           className="text-red-600 hover:text-red-700"
                         >
                           <Trash2 className="h-4 w-4" />

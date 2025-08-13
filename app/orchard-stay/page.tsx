@@ -16,45 +16,65 @@ export default function OrchardStayPage() {
     {
       name: "Anita Verma",
       rating: 5,
-      text: "Amazing experience! The apple orchards are beautiful and the farm-to-table meals were incredible.",
+      text: "A magical escape that touched my soul! The apple orchards at sunrise were breathtaking, and every meal was a celebration of flavors. This place restored my connection with nature.",
       date: "2 weeks ago",
     },
     {
       name: "Rohit Gupta",
       rating: 5,
-      text: "Perfect getaway from city life. Kids loved picking apples and learning about organic farming.",
+      text: "Our family found paradise here! The children were enchanted by apple picking and learned so much about sustainable living. The hosts made us feel like cherished family members.",
       date: "1 month ago",
     },
     {
       name: "Sunita Devi",
       rating: 4,
-      text: "Peaceful location with stunning mountain views. The accommodation was comfortable and clean.",
+      text: "An oasis of serenity with spectacular mountain vistas. The traditional cottage was immaculate, and falling asleep to mountain sounds was pure bliss. Highly recommended for soul seekers.",
       date: "2 months ago",
     },
   ]
 
   return (
-    <div className="min-h-screen bg-green-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 relative overflow-hidden">
+      {/* Floating decorative elements */}
+      <div className="absolute top-20 left-20 w-32 h-32 bg-green-200/20 rounded-full blur-xl"></div>
+      <div className="absolute bottom-20 right-20 w-40 h-40 bg-emerald-200/20 rounded-full blur-xl"></div>
+      
       {/* Hero Section */}
-      <section className="relative h-96 bg-gradient-to-r from-green-600 to-green-800">
-        <div className="absolute inset-0 bg-black/20" />
-        <div className="relative container h-full flex items-center">
-          <div className="text-white space-y-4">
-            <h1 className="text-4xl md:text-5xl font-bold">Orchard Stay Experience</h1>
-            <p className="text-xl max-w-2xl">
-              Immerse yourself in nature with our unique farm stay experience. Wake up to apple orchards, enjoy organic
-              meals, and learn sustainable farming.
-            </p>
+      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+        {/* Background with gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-green-900 via-emerald-800 to-teal-900"></div>
+        <div className="absolute inset-0 bg-black/30"></div>
+        
+        {/* Additional floating elements for hero */}
+        <div className="absolute top-20 left-20 w-32 h-32 bg-green-400/20 rounded-full blur-xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-40 h-40 bg-emerald-400/20 rounded-full blur-xl animate-pulse delay-1000"></div>
+        
+        <div className="relative container text-center text-white space-y-8 max-w-4xl mx-auto px-4">
+          <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-green-300 to-emerald-400 bg-clip-text text-transparent drop-shadow-2xl">
+            Escape to Paradise
+          </h1>
+          <p className="text-xl md:text-2xl leading-relaxed text-green-100 max-w-3xl mx-auto">
+            Discover tranquility at our enchanting mountain retreat. Sleep under star-filled skies, 
+            savor garden-fresh delicacies, and reconnect with nature's rhythm in the pristine valleys of Himachal Pradesh.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4 mt-8">
+            <Button className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-3 text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-1">
+              Reserve Your Escape
+            </Button>
+            <Button variant="outline" className="border-2 border-green-300 text-green-300 hover:bg-green-300 hover:text-green-900 px-8 py-3 text-lg backdrop-blur-sm">
+              Explore Gallery
+            </Button>
           </div>
         </div>
       </section>
 
-      <div className="container py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Main Content Section */}
+      <div className="container mx-auto py-12 px-4 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Gallery */}
-            <Card>
+            <Card className="backdrop-blur-sm bg-white/80 border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
               <CardContent className="p-0">
                 <div className="grid grid-cols-2 gap-2">
                   <Image
@@ -62,116 +82,130 @@ export default function OrchardStayPage() {
                     alt="Apple Orchard"
                     width={400}
                     height={300}
-                    className="w-full h-64 object-cover rounded-tl-lg"
+                    className="w-full h-64 object-cover rounded-tl-lg hover:scale-105 transition-transform duration-300"
                   />
                   <Image
                     src="/placeholder.svg?height=300&width=400"
                     alt="Farm Stay Accommodation"
                     width={400}
                     height={300}
-                    className="w-full h-64 object-cover rounded-tr-lg"
+                    className="w-full h-64 object-cover rounded-tr-lg hover:scale-105 transition-transform duration-300"
                   />
                   <Image
                     src="/placeholder.svg?height=300&width=400"
                     alt="Organic Farm"
                     width={400}
                     height={300}
-                    className="w-full h-64 object-cover rounded-bl-lg"
+                    className="w-full h-64 object-cover rounded-bl-lg hover:scale-105 transition-transform duration-300"
                   />
                   <Image
                     src="/placeholder.svg?height=300&width=400"
                     alt="Mountain Views"
                     width={400}
                     height={300}
-                    className="w-full h-64 object-cover rounded-br-lg"
+                    className="w-full h-64 object-cover rounded-br-lg hover:scale-105 transition-transform duration-300"
                   />
                 </div>
               </CardContent>
             </Card>
 
             {/* Experience Details */}
-            <Card>
+            <Card className="backdrop-blur-sm bg-white/80 border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <TreePine className="h-6 w-6 text-green-600" />
-                  <span>What's Included</span>
+                <CardTitle className="flex items-center space-x-2 text-xl">
+                  <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full">
+                    <TreePine className="h-6 w-6 text-white" />
+                  </div>
+                  <span className="bg-gradient-to-r from-green-700 to-emerald-800 bg-clip-text text-transparent">What's Included</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center space-y-2">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                      <Bed className="h-8 w-8 text-green-600" />
+                  <div className="text-center space-y-3 p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 hover:shadow-lg transition-all duration-300">
+                    <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-lg">
+                      <Bed className="h-8 w-8 text-white" />
                     </div>
-                    <h3 className="font-semibold">Comfortable Stay</h3>
-                    <p className="text-sm text-gray-600">Cozy rooms with mountain views and modern amenities</p>
+                    <h3 className="font-semibold text-gray-800">Luxury Mountain Retreat</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">Elegantly appointed rooms with breathtaking Himalayan panoramas and premium comfort</p>
                   </div>
 
-                  <div className="text-center space-y-2">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                      <Utensils className="h-8 w-8 text-green-600" />
+                  <div className="text-center space-y-3 p-4 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 hover:shadow-lg transition-all duration-300">
+                    <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto shadow-lg">
+                      <Utensils className="h-8 w-8 text-white" />
                     </div>
-                    <h3 className="font-semibold">Farm-to-Table Meals</h3>
-                    <p className="text-sm text-gray-600">Organic breakfast, lunch, and dinner made from our produce</p>
+                    <h3 className="font-semibold text-gray-800">Gourmet Farm Cuisine</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">Artisanal meals crafted from our heritage gardens and local mountain delicacies</p>
                   </div>
 
-                  <div className="text-center space-y-2">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                      <TreePine className="h-8 w-8 text-green-600" />
+                  <div className="text-center space-y-3 p-4 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 hover:shadow-lg transition-all duration-300">
+                    <div className="w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full flex items-center justify-center mx-auto shadow-lg">
+                      <TreePine className="h-8 w-8 text-white" />
                     </div>
-                    <h3 className="font-semibold">Farming Experience</h3>
-                    <p className="text-sm text-gray-600">Hands-on activities like fruit picking and organic farming</p>
+                    <h3 className="font-semibold text-gray-800">Authentic Farm Adventures</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">Immersive orchard experiences, traditional harvesting, and ancient farming wisdom</p>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-lg">Daily Schedule</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-start space-x-3">
-                      <Clock className="h-5 w-5 text-green-600 mt-0.5" />
-                      <div>
-                        <div className="font-medium">7:00 AM - Morning Walk</div>
-                        <div className="text-sm text-gray-600">Guided tour through apple orchards</div>
+                <div className="space-y-6 bg-gradient-to-br from-gray-50 to-slate-50 p-6 rounded-xl">
+                  <h4 className="font-semibold text-xl bg-gradient-to-r from-green-700 to-emerald-800 bg-clip-text text-transparent">Daily Rhythm of Paradise</h4>
+                  <div className="space-y-4">
+                    <div className="flex items-start space-x-4 p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                      <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full">
+                        <Clock className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-800">7:00 AM - Dawn Mountain Meditation</div>
+                        <div className="text-sm text-gray-600">Peaceful sunrise walks through fragrant apple blossoms and ancient trails</div>
                       </div>
                     </div>
-                    <div className="flex items-start space-x-3">
-                      <Clock className="h-5 w-5 text-green-600 mt-0.5" />
-                      <div>
-                        <div className="font-medium">8:30 AM - Organic Breakfast</div>
-                        <div className="text-sm text-gray-600">Fresh fruits, homemade bread, and local delicacies</div>
+                    <div className="flex items-start space-x-4 p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                      <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full">
+                        <Clock className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-800">8:30 AM - Mountain Harvest Feast</div>
+                        <div className="text-sm text-gray-600">Artisanal breakfast featuring warm apple pastries, mountain honey, and herbal teas</div>
                       </div>
                     </div>
-                    <div className="flex items-start space-x-3">
-                      <Clock className="h-5 w-5 text-green-600 mt-0.5" />
-                      <div>
-                        <div className="font-medium">10:00 AM - Farming Activities</div>
+                    <div className="flex items-start space-x-4 p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                      <div className="p-2 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full">
+                        <Clock className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-800">10:00 AM - Orchard Discovery Journey</div>
                         <div className="text-sm text-gray-600">
-                          Apple picking, pruning, and organic farming techniques
+                          Hands-on apple harvesting, traditional pruning arts, and ancestral farming secrets
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-start space-x-3">
-                      <Clock className="h-5 w-5 text-green-600 mt-0.5" />
-                      <div>
-                        <div className="font-medium">1:00 PM - Farm Lunch</div>
-                        <div className="text-sm text-gray-600">Seasonal vegetables and fruits from our gardens</div>
+                    <div className="flex items-start space-x-4 p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                      <div className="p-2 bg-gradient-to-r from-purple-500 to-violet-600 rounded-full">
+                        <Clock className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-800">1:00 PM - Garden Symphony Lunch</div>
+                        <div className="text-sm text-gray-600">Seasonal treasures from our terraced gardens with Himalayan herbs and spices</div>
                       </div>
                     </div>
-                    <div className="flex items-start space-x-3">
-                      <Clock className="h-5 w-5 text-green-600 mt-0.5" />
-                      <div>
-                        <div className="font-medium">3:00 PM - Free Time</div>
+                    <div className="flex items-start space-x-4 p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                      <div className="p-2 bg-gradient-to-r from-pink-500 to-rose-600 rounded-full">
+                        <Clock className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-800">3:00 PM - Tranquil Mountain Escape</div>
                         <div className="text-sm text-gray-600">
-                          Relax, explore, or participate in optional activities
+                          Personal time for meditation, nature photography, or village exploration
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-start space-x-3">
-                      <Clock className="h-5 w-5 text-green-600 mt-0.5" />
-                      <div>
-                        <div className="font-medium">7:00 PM - Dinner & Bonfire</div>
+                    <div className="flex items-start space-x-4 p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                      <div className="p-2 bg-gradient-to-r from-teal-500 to-cyan-600 rounded-full">
+                        <Clock className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-800">7:00 PM - Starlight Feast & Stories</div>
                         <div className="text-sm text-gray-600">
-                          Traditional dinner followed by storytelling around the fire
+                          Mountain cuisine under starlit skies with folk tales and traditional music
                         </div>
                       </div>
                     </div>

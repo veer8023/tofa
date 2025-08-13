@@ -1,58 +1,155 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { PrismaClient } from "@prisma/client"
+import { NextRequest, NextResponse } from "next/server"
+import { prisma, withRetry } from "@/lib/prisma"
+import { productSchema, productSearchSchema } from "@/lib/validation"
+import { handleApiError, validationError } from "@/lib/error-handler"
+import { log } from "@/lib/logger"
 
-const prisma = new PrismaClient()
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const category = searchParams.get("category")
-    const search = searchParams.get("search")
-
-    let where: any = {}
-    if (category && category !== "all") where.category = category
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } }
-      ]
+    // Use searchParams from the request object directly
+    const searchParams = request.nextUrl.searchParams
+    
+    // Extract and validate search parameters
+    const searchData = {
+      category: searchParams.get("category"),
+      search: searchParams.get("search"),
+      page: searchParams.get("page") ? parseInt(searchParams.get("page")!) : undefined,
+      limit: searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : undefined,
     }
 
-    const products = await prisma.product.findMany({ where })
-    return NextResponse.json(products)
+    // Validate search parameters
+    const validatedSearch = productSearchSchema.parse(searchData)
+    
+    // Build query conditions
+    const where: any = {}
+    
+    if (validatedSearch.category) {
+      where.category = validatedSearch.category
+    }
+    
+    if (validatedSearch.search) {
+      where.OR = [
+        { name: { contains: validatedSearch.search, mode: 'insensitive' } },
+        { description: { contains: validatedSearch.search, mode: 'insensitive' } },
+      ]
+    }
+    
+    // Pagination
+    const page = validatedSearch.page || 1
+    const limit = validatedSearch.limit || 20
+    const skip = (page - 1) * limit
+    
+    // Fetch products with pagination using retry logic
+    const [products, total] = await withRetry(async () => {
+      return await Promise.all([
+        prisma.product.findMany({
+          where,
+          skip,
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+        }),
+        prisma.product.count({ where })
+      ])
+    })
+    
+    log.info('Products fetched successfully', { 
+      count: products.length, 
+      total, 
+      page, 
+      limit,
+      filters: { category: validatedSearch.category, search: validatedSearch.search }
+    })
+    
+    return NextResponse.json({
+      products,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+        hasNext: page * limit < total,
+        hasPrev: page > 1,
+      }
+    })
+    
   } catch (error) {
-    console.error("Products fetch error:", error)
-    return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 })
+    log.apiError('/api/products', error)
+    return handleApiError(error)
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const productData = await request.json()
-    const productToSend = {
-      name: productData.name,
-      description: productData.description,
-      price: productData.price,
-      category: productData.category?.toUpperCase(), // <-- Ensure uppercase
-      image: productData.image,
-      stock: productData.stock,
-      unit: productData.unit,
+    const data = await request.json()
+    
+    // Validate input
+    const validatedData = productSchema.parse(data)
+    
+    // Check if product with same name already exists
+    const existingProduct = await withRetry(async () => {
+      return await prisma.product.findFirst({
+        where: { name: validatedData.name }
+      })
+    })
+    
+    if (existingProduct) {
+      throw validationError("Product with this name already exists")
     }
-    const newProduct = await prisma.product.create({ data: productToSend })
-    return NextResponse.json(newProduct, { status: 201 })
+    
+    // Create product
+    const product = await withRetry(async () => {
+      return await prisma.product.create({
+        data: validatedData
+      })
+    })
+    
+    log.info('Product created successfully', { productId: product.id, name: product.name })
+    
+    return NextResponse.json(product, { status: 201 })
+    
   } catch (error) {
-    console.error("Product creation error:", error)
-    return NextResponse.json({ error: "Failed to create product" }, { status: 500 })
+    log.apiError('/api/products', error)
+    return handleApiError(error)
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { id } = await request.json()
-    await prisma.product.delete({ where: { id } })
-    return NextResponse.json({ success: true })
+    const searchParams = request.nextUrl.searchParams
+    const productId = searchParams.get("id")
+    
+    if (!productId) {
+      throw validationError("Product ID is required")
+    }
+    
+    // Check if product exists
+    const existingProduct = await withRetry(async () => {
+      return await prisma.product.findUnique({
+        where: { id: productId }
+      })
+    })
+    
+    if (!existingProduct) {
+      throw validationError("Product not found")
+    }
+    
+    // Delete product
+    await withRetry(async () => {
+      return await prisma.product.delete({
+        where: { id: productId }
+      })
+    })
+    
+    log.info('Product deleted successfully', { productId })
+    
+    return NextResponse.json({ message: "Product deleted successfully" })
+    
   } catch (error) {
-    console.error("Product deletion error:", error)
-    return NextResponse.json({ error: "Failed to delete product" }, { status: 500 })
+    log.apiError('/api/products', error)
+    return handleApiError(error)
   }
 }
+

@@ -5,62 +5,53 @@ import { Apple, Droplets, ArrowRight } from "lucide-react"
 
 export function ProductCategories() {
   return (
-    <section className="py-20 bg-green-50">
-      <div className="container">
-        <div className="text-center space-y-4 mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-green-900">Our Product Categories</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Discover our range of premium organic products, carefully cultivated and processed to bring you nature's
-            best.
+    <section className="py-16 bg-white">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">
+            Our Products
+          </h2>
+          <p className="text-gray-600 max-w-xl mx-auto">
+            Premium organic products, carefully cultivated for your health and wellness.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Card className="overflow-hidden hover:shadow-xl transition-shadow">
-            <div className="h-64 bg-gradient-to-br from-red-100 to-yellow-100 flex items-center justify-center">
-              <Apple className="h-24 w-24 text-red-500" />
-            </div>
-            <CardContent className="p-6 space-y-4">
-              <h3 className="text-2xl font-bold text-green-900">Organic Fruits</h3>
-              <p className="text-gray-600">
-                Fresh, juicy, and nutrient-packed fruits including apples, pears, blueberries, guava, persimmon, and
-                lemons - all grown organically in our orchards.
-              </p>
-              <div className="flex flex-wrap gap-2 mb-4">
-                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Apple</span>
-                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Pear</span>
-                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Blueberry</span>
-                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Guava</span>
-                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Persimmon</span>
-                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Lemon</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <Card className="border border-gray-200 hover:border-gray-300 transition-colors duration-200">
+            <CardContent className="p-8 text-center">
+              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Apple className="h-8 w-8 text-red-600" />
               </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                Organic Fruits
+              </h3>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Fresh, nutrient-packed fruits including apples, pears, blueberries, and more.
+              </p>
               <Link href="/products?category=fruits">
-                <Button className="w-full bg-green-600 hover:bg-green-700">
+                <Button variant="outline" className="group">
                   Shop Fruits
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden hover:shadow-xl transition-shadow">
-            <div className="h-64 bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
-              <Droplets className="h-24 w-24 text-purple-500" />
-            </div>
-            <CardContent className="p-6 space-y-4">
-              <h3 className="text-2xl font-bold text-green-900">Essential Oils & Aromatics</h3>
-              <p className="text-gray-600">
-                Pure, therapeutic-grade essential oils extracted from our organic herbs and fruits. Perfect for
-                aromatherapy, wellness, and natural skincare.
-              </p>
-              <div className="flex flex-wrap gap-2 mb-4">
-                <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">Lemongrass Oil</span>
-                <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">Apricot Oil</span>
+          <Card className="border border-gray-200 hover:border-gray-300 transition-colors duration-200">
+            <CardContent className="p-8 text-center">
+              <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Droplets className="h-8 w-8 text-purple-600" />
               </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                Essential Oils
+              </h3>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Pure, therapeutic-grade essential oils for aromatherapy and wellness.
+              </p>
               <Link href="/products?category=aromatics">
-                <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                  Shop Aromatics
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                <Button variant="outline" className="group">
+                  Shop Oils
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
             </CardContent>

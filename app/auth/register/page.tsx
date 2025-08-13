@@ -20,7 +20,7 @@ export default function RegisterPage() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "customer" as "customer" | "retailer" | "wholesaler",
+    role: "CUSTOMER" as "CUSTOMER" | "RETAILER" | "WHOLESALER",
   })
   const [loading, setLoading] = useState(false)
   const { register } = useAuth()
@@ -110,9 +110,9 @@ export default function RegisterPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="customer">Customer</SelectItem>
-                  <SelectItem value="retailer">Retailer</SelectItem>
-                  <SelectItem value="wholesaler">Wholesaler</SelectItem>
+                  <SelectItem value="CUSTOMER">Customer</SelectItem>
+                  <SelectItem value="RETAILER">Retailer</SelectItem>
+                  <SelectItem value="WHOLESALER">Wholesaler</SelectItem>
                 </SelectContent>
               </Select>
             </div>

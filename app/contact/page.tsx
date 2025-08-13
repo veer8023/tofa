@@ -156,9 +156,9 @@ export default function ContactPage() {
                     <div className="text-gray-600">
                       TOFA Organic Farms
                       <br />
-                      Village Kotgarh, Shimla District
+                      Village Dhumadhar, Shimla District
                       <br />
-                      Himachal Pradesh 171201, India
+                      Himachal Pradesh 171207, India
                     </div>
                   </div>
                 </div>
@@ -167,7 +167,7 @@ export default function ContactPage() {
                   <Phone className="h-5 w-5 text-green-600 mt-1" />
                   <div>
                     <div className="font-medium">Phone</div>
-                    <div className="text-gray-600">+91 98765 43210</div>
+                    <div className="text-gray-600">+91 9816711369</div>
                   </div>
                 </div>
 

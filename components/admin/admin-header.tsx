@@ -11,7 +11,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Bell, LogOut, User } from "lucide-react"
+import { LogOut, User } from "lucide-react"
+import { AdminNotifications } from "./admin-notifications"
 
 export function AdminHeader() {
   const { user, logout } = useAuth()
@@ -22,9 +23,7 @@ export function AdminHeader() {
         <div className="flex-1" />
 
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon">
-            <Bell className="h-5 w-5" />
-          </Button>
+          <AdminNotifications />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

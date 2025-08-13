@@ -9,5 +9,7 @@
       "maxDuration": 30
     }
   },
-  "regions": ["bom1", "sin1"]
+  "regions": ["bom1", "sin1"],
+  "framework": "nextjs",
+  "outputDirectory": ".next"
 }

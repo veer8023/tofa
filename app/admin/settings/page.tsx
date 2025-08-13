@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,53 +9,161 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
-import { Settings, Bell, Truck, CreditCard, Save } from "lucide-react"
+import { Settings, Bell, Truck, CreditCard, Save, RefreshCw, AlertCircle } from "lucide-react"
+
+interface SettingsData {
+  // General Settings
+  siteName?: string
+  siteDescription?: string
+  contactEmail?: string
+  contactPhone?: string
+  address?: string
+
+  // Notification Settings
+  emailNotifications?: boolean
+  orderNotifications?: boolean
+  lowStockAlerts?: boolean
+  newUserAlerts?: boolean
+
+  // Shipping Settings
+  freeShippingThreshold?: number
+  standardShippingCost?: number
+  expressShippingCost?: number
+
+  // Payment Settings
+  codEnabled?: boolean
+  onlinePaymentEnabled?: boolean
+  minimumOrderAmount?: number
+
+  // Inventory Settings
+  lowStockThreshold?: number
+  autoReorderEnabled?: boolean
+
+  // Business Settings
+  gstNumber?: string
+  businessHours?: string
+}
+
+const defaultSettings: SettingsData = {
+  // General Settings
+  siteName: "TOFA - Tarasv Organic Farms & Aromatics",
+  siteDescription: "Premium organic fruits and essential oils from our sustainable farms",
+  contactEmail: "info@tofa.com",
+  contactPhone: "+91 98765 43210",
+  address: "Village Kotgarh, Shimla District, Himachal Pradesh 171201",
+
+  // Notification Settings
+  emailNotifications: true,
+  orderNotifications: true,
+  lowStockAlerts: true,
+  newUserAlerts: true,
+
+  // Shipping Settings
+  freeShippingThreshold: 500,
+  standardShippingCost: 50,
+  expressShippingCost: 100,
+
+  // Payment Settings
+  codEnabled: true,
+  onlinePaymentEnabled: false,
+  minimumOrderAmount: 100,
+
+  // Inventory Settings
+  lowStockThreshold: 10,
+  autoReorderEnabled: false,
+
+  // Business Settings
+  gstNumber: "12ABCDE3456F7GH",
+  businessHours: "Monday - Saturday: 9:00 AM - 6:00 PM",
+}
 
 export default function SettingsPage() {
   const { toast } = useToast()
-  const [settings, setSettings] = useState({
-    // General Settings
-    siteName: "TOFA - Tarasv Organic Farms & Aromatics",
-    siteDescription: "Premium organic fruits and essential oils from our sustainable farms",
-    contactEmail: "info@tofa.com",
-    contactPhone: "+91 98765 43210",
-    address: "Village Kotgarh, Shimla District, Himachal Pradesh 171201",
+  const [settings, setSettings] = useState<SettingsData>(defaultSettings)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [hasChanges, setHasChanges] = useState(false)
 
-    // Notification Settings
-    emailNotifications: true,
-    orderNotifications: true,
-    lowStockAlerts: true,
-    newUserAlerts: true,
+  // Fetch settings from API
+  const fetchSettings = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/admin/settings')
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch settings')
+      }
 
-    // Shipping Settings
-    freeShippingThreshold: 500,
-    standardShippingCost: 50,
-    expressShippingCost: 100,
-
-    // Payment Settings
-    codEnabled: true,
-    onlinePaymentEnabled: false,
-    minimumOrderAmount: 100,
-
-    // Inventory Settings
-    lowStockThreshold: 10,
-    autoReorderEnabled: false,
-
-    // Business Settings
-    gstNumber: "12ABCDE3456F7GH",
-    businessHours: "Monday - Saturday: 9:00 AM - 6:00 PM",
-  })
-
-  const handleSave = () => {
-    // In a real app, save to backend
-    toast({
-      title: "Settings saved",
-      description: "Your settings have been updated successfully.",
-    })
+      const data = await response.json()
+      
+      // Merge with default settings to ensure all fields are present
+      setSettings({ ...defaultSettings, ...data.settings })
+      setHasChanges(false)
+      
+    } catch (error) {
+      console.error('Error fetching settings:', error)
+      toast({
+        title: "Error",
+        description: "Failed to load settings. Using default values.",
+        variant: "destructive",
+      })
+      // Use default settings if fetch fails
+      setSettings(defaultSettings)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const updateSetting = (key: string, value: any) => {
-    setSettings((prev) => ({ ...prev, [key]: value }))
+  // Load settings on component mount
+  useEffect(() => {
+    fetchSettings()
+  }, [])
+
+  const handleSave = async () => {
+    try {
+      setSaving(true)
+      
+      const response = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ settings }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save settings')
+      }
+
+      setHasChanges(false)
+      toast({
+        title: "Settings saved",
+        description: "Your settings have been updated successfully.",
+      })
+      
+    } catch (error) {
+      console.error('Error saving settings:', error)
+      toast({
+        title: "Error",
+        description: "Failed to save settings. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const updateSetting = (key: keyof SettingsData, value: any) => {
+    setSettings((prev: SettingsData) => ({ ...prev, [key]: value }))
+    setHasChanges(true)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <RefreshCw className="h-8 w-8 animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -79,7 +187,7 @@ export default function SettingsPage() {
               <Label htmlFor="siteName">Site Name</Label>
               <Input
                 id="siteName"
-                value={settings.siteName}
+                value={settings.siteName || ''}
                 onChange={(e) => updateSetting("siteName", e.target.value)}
               />
             </div>
@@ -88,7 +196,7 @@ export default function SettingsPage() {
               <Label htmlFor="siteDescription">Site Description</Label>
               <Textarea
                 id="siteDescription"
-                value={settings.siteDescription}
+                value={settings.siteDescription || ''}
                 onChange={(e) => updateSetting("siteDescription", e.target.value)}
                 rows={3}
               />
@@ -99,7 +207,7 @@ export default function SettingsPage() {
               <Input
                 id="contactEmail"
                 type="email"
-                value={settings.contactEmail}
+                value={settings.contactEmail || ''}
                 onChange={(e) => updateSetting("contactEmail", e.target.value)}
               />
             </div>
@@ -108,7 +216,7 @@ export default function SettingsPage() {
               <Label htmlFor="contactPhone">Contact Phone</Label>
               <Input
                 id="contactPhone"
-                value={settings.contactPhone}
+                value={settings.contactPhone || ''}
                 onChange={(e) => updateSetting("contactPhone", e.target.value)}
               />
             </div>
@@ -117,7 +225,7 @@ export default function SettingsPage() {
               <Label htmlFor="address">Business Address</Label>
               <Textarea
                 id="address"
-                value={settings.address}
+                value={settings.address || ''}
                 onChange={(e) => updateSetting("address", e.target.value)}
                 rows={3}
               />
@@ -141,7 +249,7 @@ export default function SettingsPage() {
               </div>
               <Switch
                 id="emailNotifications"
-                checked={settings.emailNotifications}
+                checked={settings.emailNotifications || false}
                 onCheckedChange={(checked) => updateSetting("emailNotifications", checked)}
               />
             </div>
@@ -155,7 +263,7 @@ export default function SettingsPage() {
               </div>
               <Switch
                 id="orderNotifications"
-                checked={settings.orderNotifications}
+                checked={settings.orderNotifications || false}
                 onCheckedChange={(checked) => updateSetting("orderNotifications", checked)}
               />
             </div>
@@ -167,7 +275,7 @@ export default function SettingsPage() {
               </div>
               <Switch
                 id="lowStockAlerts"
-                checked={settings.lowStockAlerts}
+                checked={settings.lowStockAlerts || false}
                 onCheckedChange={(checked) => updateSetting("lowStockAlerts", checked)}
               />
             </div>
@@ -179,7 +287,7 @@ export default function SettingsPage() {
               </div>
               <Switch
                 id="newUserAlerts"
-                checked={settings.newUserAlerts}
+                checked={settings.newUserAlerts || false}
                 onCheckedChange={(checked) => updateSetting("newUserAlerts", checked)}
               />
             </div>
@@ -200,7 +308,7 @@ export default function SettingsPage() {
               <Input
                 id="freeShippingThreshold"
                 type="number"
-                value={settings.freeShippingThreshold}
+                value={settings.freeShippingThreshold || 0}
                 onChange={(e) => updateSetting("freeShippingThreshold", Number(e.target.value))}
               />
             </div>
@@ -210,7 +318,7 @@ export default function SettingsPage() {
               <Input
                 id="standardShippingCost"
                 type="number"
-                value={settings.standardShippingCost}
+                value={settings.standardShippingCost || 0}
                 onChange={(e) => updateSetting("standardShippingCost", Number(e.target.value))}
               />
             </div>
@@ -220,7 +328,7 @@ export default function SettingsPage() {
               <Input
                 id="expressShippingCost"
                 type="number"
-                value={settings.expressShippingCost}
+                value={settings.expressShippingCost || 0}
                 onChange={(e) => updateSetting("expressShippingCost", Number(e.target.value))}
               />
             </div>
@@ -243,7 +351,7 @@ export default function SettingsPage() {
               </div>
               <Switch
                 id="codEnabled"
-                checked={settings.codEnabled}
+                checked={settings.codEnabled || false}
                 onCheckedChange={(checked) => updateSetting("codEnabled", checked)}
               />
             </div>
@@ -257,7 +365,7 @@ export default function SettingsPage() {
               </div>
               <Switch
                 id="onlinePaymentEnabled"
-                checked={settings.onlinePaymentEnabled}
+                checked={settings.onlinePaymentEnabled || false}
                 onCheckedChange={(checked) => updateSetting("onlinePaymentEnabled", checked)}
               />
             </div>
@@ -267,7 +375,7 @@ export default function SettingsPage() {
               <Input
                 id="minimumOrderAmount"
                 type="number"
-                value={settings.minimumOrderAmount}
+                value={settings.minimumOrderAmount || 0}
                 onChange={(e) => updateSetting("minimumOrderAmount", Number(e.target.value))}
               />
             </div>
@@ -276,7 +384,7 @@ export default function SettingsPage() {
               <Label htmlFor="gstNumber">GST Number</Label>
               <Input
                 id="gstNumber"
-                value={settings.gstNumber}
+                value={settings.gstNumber || ''}
                 onChange={(e) => updateSetting("gstNumber", e.target.value)}
               />
             </div>
@@ -288,14 +396,50 @@ export default function SettingsPage() {
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold">Save Changes</h3>
-              <p className="text-sm text-gray-500">Make sure to save your changes before leaving this page.</p>
+            <div className="flex items-center space-x-3">
+              <div>
+                <h3 className="font-semibold">Save Changes</h3>
+                <p className="text-sm text-gray-500">
+                  {hasChanges 
+                    ? "You have unsaved changes." 
+                    : "All changes have been saved."
+                  }
+                </p>
+              </div>
+              {hasChanges && (
+                <div className="flex items-center text-orange-600">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  <span className="text-sm">Unsaved changes</span>
+                </div>
+              )}
             </div>
-            <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700">
-              <Save className="h-4 w-4 mr-2" />
-              Save Settings
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Button 
+                onClick={fetchSettings} 
+                variant="outline"
+                disabled={saving}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Reload
+              </Button>
+              <Button 
+                onClick={handleSave} 
+                className="bg-green-600 hover:bg-green-700"
+                disabled={saving || !hasChanges}
+              >
+                {saving ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Settings
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
