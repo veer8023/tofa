@@ -1,0 +1,7 @@
+# Deployment Trigger - CRITICAL FIX
+# This file forces fresh deployments when needed
+
+Last updated: 2025-08-14T07:50:00Z
+Trigger: CRITICAL P6001 FIX - Remove directUrl and fix binary targets
+Build: Force clean Prisma generation with cache clear
+Status: Emergency deployment to fix production errors

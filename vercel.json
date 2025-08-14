@@ -1,5 +1,5 @@
 {
-  "buildCommand": "prisma generate && next build",
+  "buildCommand": "rm -rf node_modules/.prisma && npx prisma generate && next build",
   "installCommand": "npm install",
   "env": {
     "PRISMA_GENERATE_SKIP_AUTOINSTALL": "true"
@@ -9,7 +9,6 @@
       "maxDuration": 30
     }
   },
-  "regions": ["bom1", "sin1"],
   "framework": "nextjs",
   "outputDirectory": ".next"
 }
