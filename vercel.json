@@ -1,8 +1,9 @@
 {
-  "buildCommand": "rm -rf node_modules/.prisma && npx prisma generate && next build",
+  "buildCommand": "rm -rf node_modules/.prisma && rm -rf .next && PRISMA_CLIENT_ENGINE_TYPE=binary npx prisma generate && next build",
   "installCommand": "npm install",
   "env": {
-    "PRISMA_GENERATE_SKIP_AUTOINSTALL": "true"
+    "PRISMA_GENERATE_SKIP_AUTOINSTALL": "true",
+    "PRISMA_CLIENT_ENGINE_TYPE": "binary"
   },
   "functions": {
     "app/api/**/*.ts": {

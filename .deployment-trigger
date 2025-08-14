@@ -1,7 +1,8 @@
-# Deployment Trigger - CRITICAL FIX
+# Deployment Trigger - ULTIMATE P6001 FIX
 # This file forces fresh deployments when needed
 
-Last updated: 2025-08-14T07:50:00Z
-Trigger: CRITICAL P6001 FIX - Remove directUrl and fix binary targets
-Build: Force clean Prisma generation with cache clear
-Status: Emergency deployment to fix production errors
+Last updated: 2025-08-14T08:00:00Z
+Trigger: ULTIMATE P6001 FIX - Force binary engine type
+Build: Complete cache clear + forced binary Prisma generation
+Status: Emergency deployment - added engineType = "binary"
+Solution: This targets the exact cause of the P6001 error
