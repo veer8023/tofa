@@ -18,7 +18,7 @@ export const productSchema = z.object({
   name: z.string().min(1, 'Product name is required').max(100, 'Product name must be less than 100 characters'),
   description: z.string().min(1, 'Description is required'),
   price: z.number().positive('Price must be positive'),
-  wholesalePrice: z.number().positive('Wholesale price must be positive'),
+  wholesalePrice: z.number().min(0, 'Wholesale price cannot be negative'),
   category: z.enum(['FRUITS', 'AROMATICS']),
   stock: z.number().int().min(0, 'Stock cannot be negative'),
   minStock: z.number().int().min(0, 'Minimum stock cannot be negative'),
