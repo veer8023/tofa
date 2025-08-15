@@ -22,8 +22,7 @@ import {
   Phone,
   Mail,
   Copy,
-  Share2,
-  RefreshCw
+  Share2
 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { PostDeliveryActions } from "@/components/post-delivery-actions"
@@ -505,11 +504,7 @@ export default function OrdersPage() {
                           Real-time tracking information for your package
                         </DialogDescription>
                       </DialogHeader>
-                      <OrderTracking 
-                        trackingNumber={order.trackingNumber} 
-                        orderId={order.id}
-                        currentStatus={order.status}
-                      />
+                      <OrderTracking trackingNumber={order.trackingNumber} />
                     </DialogContent>
                   </Dialog>
                 )}
@@ -520,17 +515,7 @@ export default function OrdersPage() {
           {/* Post-delivery actions for delivered orders */}
           {order.status === "delivered" && !isExpanded && (
             <div className="mt-3 pt-3 border-t">
-              <PostDeliveryActions order={{
-                ...order,
-                createdAt: order.date,
-                items: order.orderItems.map(item => ({
-                  id: item.name, // Using name as fallback ID
-                  name: item.name,
-                  quantity: item.quantity,
-                  price: item.price,
-                  image: item.image
-                }))
-              }} />
+              <PostDeliveryActions order={order} />
             </div>
           )}
         </CardContent>

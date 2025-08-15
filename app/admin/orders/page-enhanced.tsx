@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -138,7 +136,6 @@ export default function AdminOrdersPageEnhanced() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL")
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [authError, setAuthError] = useState(false)
   const { toast } = useToast()
 
   const fetchOrders = async () => {
@@ -147,27 +144,23 @@ export default function AdminOrdersPageEnhanced() {
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: "20",
+        search: searchTerm,
         status: statusFilter === "ALL" ? "" : statusFilter
       })
 
-      const response = await fetch(`/api/orders?${params}`)
+      const response = await fetch(`/api/admin/orders?${params}`)
       if (!response.ok) {
-        if (response.status === 401) {
-          setAuthError(true)
-          throw new Error('Unauthorized access. Admin rights required.')
-        }
         throw new Error('Failed to fetch orders')
       }
 
       const data: OrderResponse = await response.json()
       setOrders(data.orders)
       setTotalPages(data.pagination.pages)
-      setAuthError(false)
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching orders:', error)
       toast({
         title: "Error",
-        description: error.message || "Failed to fetch orders. Please try again.",
+        description: "Failed to fetch orders. Please try again.",
         variant: "destructive"
       })
     } finally {
@@ -177,15 +170,7 @@ export default function AdminOrdersPageEnhanced() {
 
   useEffect(() => {
     fetchOrders()
-  }, [currentPage, statusFilter])
-
-  // Debounce search to avoid too many re-renders
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      // Search is handled in filteredOrders, no need to refetch
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [searchTerm])
+  }, [currentPage, searchTerm, statusFilter])
 
   const handleOrderUpdate = (orderId: string, updates: Partial<Order>) => {
     setOrders(prevOrders =>
@@ -233,25 +218,10 @@ export default function AdminOrdersPageEnhanced() {
       order.shippingName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.shippingPhone.includes(searchTerm)
 
-    return matchesSearch
-  })
+    const matchesStatus = statusFilter === "ALL" || order.status === statusFilter
 
-  if (authError) {
-    return (
-      <div className="container mx-auto py-8 px-4">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
-          <p className="text-muted-foreground mb-4">
-            You need admin privileges to access this page.
-          </p>
-          <Button onClick={() => window.location.href = '/auth'}>
-            Sign in as Admin
-          </Button>
-        </div>
-      </div>
-    )
-  }
+    return matchesSearch && matchesStatus
+  })
 
   if (loading) {
     return (

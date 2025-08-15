@@ -43,8 +43,7 @@ export async function GET(request: NextRequest) {
                 }
               }
             }
-          },
-          shippingAddress: true
+          }
         }
       })
     } else if (orderNumber) {
